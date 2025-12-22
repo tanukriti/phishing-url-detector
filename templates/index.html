@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phishing URL Detector</title>
+</head>
+<body>
+    <h2>Phishing Website Detection</h2>
+
+    <form method="POST">
+        {% for i in range(30) %}
+            <input type="number" name="feature{{i}}" required placeholder="Feature {{i+1}}">
+            <br><br>
+        {% endfor %}
+        <button type="submit">Check Website</button>
+    </form>
+
+    {% if prediction %}
+        <h3>{{ prediction }}</h3>
+    {% endif %}
+</body>
+</html>
