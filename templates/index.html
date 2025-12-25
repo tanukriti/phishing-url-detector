@@ -1,21 +1,216 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Phishing URL Detector</title>
-</head>
-<body>
-    <h2>Phishing Website Detection</h2>
 
-    <form method="POST">
-        {% for i in range(30) %}
-            <input type="number" name="feature{{i}}" required placeholder="Feature {{i+1}}">
-            <br><br>
-        {% endfor %}
-        <button type="submit">Check Website</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Phishing Detector</title>
+
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #0f2027, #000000);
+            min-height: 100vh;
+            margin: 0;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 70px auto;
+            background: #0b1c26;
+            padding: 35px;
+            border-radius: 14px;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.15);
+        }
+
+        h1 {
+            text-align: center;
+            color: #00e5ff;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #9aaebc;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+            color: #b0c7d1;
+        }
+
+        input[type="url"] {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 1px solid #1f3b4d;
+            background: #08141b;
+            color: #ffffff;
+            outline: none;
+            margin-bottom: 20px;
+        }
+
+        input[type="url"]:focus {
+            border-color: #00e5ff;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            font-size: 17px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00e5ff, #0072ff);
+            color: #001018;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 15px rgba(0,229,255,0.6);
+        }
+
+        .result {
+            margin-top: 35px;
+            padding: 25px;
+            border-radius: 12px;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        .phishing {
+            background: #2b0f14;
+            border-left: 6px solid #ff4d4d;
+        }
+
+        .legit {
+            background: #0f2b1b;
+            border-left: 6px solid #2ecc71;
+        }
+
+        .risk {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        ul {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 35px;
+            font-size: 12px;
+            color: #5f7d8c;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }   
+
+        .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255,255,255,0.2);
+        border-top: 4px solid #00e5ff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: auto;
+        }
+
+        @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+        }
+
+        .confidence-bar {
+        background: #10212b;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .confidence-fill {
+            height: 12px;
+            background: linear-gradient(90deg, #00e5ff, #00ff95);
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🔐 Phishing Detector</h1>
+    <p class="subtitle">
+        AI-powered URL analysis for phishing detection
+    </p>
+
+    <form method="POST" onsubmit="showLoader()">
+        <label for="url">Website URL</label>
+        <input type="url" name="url" id="url" placeholder="https://example.com" required>
+        <button type="submit">Analyze Website</button>
     </form>
 
+<div class="loader" id="loader">
+    <div class="spinner"></div>
+    <p>Scanning URL for phishing indicators...</p>
+</div>
+
     {% if prediction %}
-        <h3>{{ prediction }}</h3>
+        <div class="result {{ 'phishing' if 'Phishing' in prediction else 'legit' }}">
+            <h2>{{ prediction }}</h2>
+            <p class="risk">Risk Level: {{ risk_level }}</p>
+
+            {% if confidence is not none %}
+                <p><strong>Confidence:</strong> {{ confidence }}%</p>
+            {% endif %}
+            
+            <div class="confidence-bar">
+                <div class="confidence-fill" style="width: {{ confidence }}%;"></div>
+            </div>
+
+            {% if reasons %}
+                <h3>Why this looks risky:</h3>
+                <ul>
+                    {% for reason in reasons %}
+                        <li>{{ reason }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No obvious phishing indicators were detected.</p>
+            {% endif %}
+        </div>
     {% endif %}
+</div>
+
+<div class="footer">
+    Built with Machine Learning & Flask • Cybersecurity Project
+</div>
+<script>
+    function showLoader() {
+        document.getElementById("loader").style.display = "block";
+    }
+</script>
+
 </body>
 </html>
