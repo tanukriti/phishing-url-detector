@@ -9,6 +9,12 @@ import numpy as np
 import re
 from urllib.parse import urlparse
 
+SUSPICIOUS_KEYWORDS = [
+    "login", "verify", "secure", "update", "account",
+    "bank", "payment", "signin", "confirm", "password"
+]
+
+
 app = Flask(__name__)
 
 # Load trained ML model
@@ -70,7 +76,44 @@ def extract_url_features(url):
     if not url.startswith("https"):
         features[7] = 1
 
+    # 8. Suspicious keyword detection (basic NLP)
+    url_lower = url.lower()
+    if any(keyword in url_lower for keyword in SUSPICIOUS_KEYWORDS):
+        features[8] = 1
+
+
     return features
+
+def highlight_url(url):
+    highlighted = url
+
+    # Highlight IP addresses
+    highlighted = re.sub(
+        r"(\d+\.\d+\.\d+\.\d+)",
+        r"<span class='highlight-ip'>\1</span>",
+        highlighted
+    )
+
+    # Highlight suspicious keywords
+    for word in SUSPICIOUS_KEYWORDS:
+        highlighted = re.sub(
+            rf"({re.escape(word)})",
+            r"<span class='highlight-keyword'>\1</span>",
+            highlighted,
+            flags=re.IGNORECASE
+        )
+
+    # Highlight hyphen in domain
+    try:
+        parsed = urlparse(url)
+        domain = parsed.netloc
+        if "-" in domain:
+            safe_domain = domain.replace("-", "<span class='highlight-hyphen'>-</span>")
+            highlighted = highlighted.replace(domain, safe_domain)
+    except:
+        pass
+
+    return highlighted
 
 # ---------------- FLASK ROUTE ---------------- #
 @app.route("/", methods=["GET", "POST"])
@@ -79,13 +122,14 @@ def index():
     reasons = []
     risk_level = None
     confidence = None
+    highlighted_url = None
+    safe_message = ""
 
     if request.method == "POST":
         url = request.form.get("url")
-
-        # Extract features automatically
+        highlighted_url = highlight_url(url)
         features = extract_url_features(url)
-
+        
         # Generate explanation
         for i, value in enumerate(features):
             if value == 1 and i in FEATURE_DESCRIPTIONS:
@@ -112,14 +156,27 @@ def index():
         else:
             risk_level = "Low Risk 🟢"
 
+        #safe message logic
+        if prediction == "✅ Legitimate Website":
+            if "Medium" in risk_level:
+                safe_message = (
+                    "This website appears mostly safe, but some suspicious patterns were detected. Proceed with caution.")
+            else:
+                safe_message = ("This website appears safe based on the analyzed URL features.")
+
+
+
     return render_template(
         "index.html",
         prediction=prediction,
         risk_level=risk_level,
         reasons=reasons,
-        confidence=confidence
+        confidence=confidence,
+        highlighted_url=highlighted_url,
+        safe_message=locals().get("safe_message", "")
+
     )
 
 # ---------------- RUN APP ---------------- #
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    app.run()
