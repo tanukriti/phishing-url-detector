@@ -1,3 +1,6 @@
+🔗 Live Demo: https://phishing-detector-7gfb.onrender.com
+
+
 # Phishing Detector 🛡️
 A machine learning–based web application that analyzes website URLs to detect potential phishing attempts.  
 This project was built as a personal learning exercise and as my first individual cybersecurity project.
